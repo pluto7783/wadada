@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>와다다던전런</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+    body{margin:20px;background:#f6f8fa;color:#111}
+    .wrap{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+    .panel{background:#fff;border:1px solid #e1e4e8;border-radius:8px;padding:12px;box-shadow:0 2px 6px rgba(20,20,20,0.03)}
+    
+    
+    /* 우측 큰 테이블 (이제 오른쪽으로 이동) */
+    .right{flex:1;min-width:0;order:2}
+    table{border-collapse:collapse;width:100%;table-layout:fixed}
+    th,td{border:1px solid #dfe3e8;padding:8px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    th{background:#f0f4f8;font-weight:600}
+    
+    
+    /* 좌측 좁은 테이블 */
+    .left{width:220px;order:1}
+    .left table th, .left table td{padding:10px}
+    
+    
+    .tbody-scroll{max-height:520px;overflow:auto}
+    
+    
+    /* 반응형: 모바일에서 큰 테이블이 위로 올라가도록 */
+    @media(max-width:720px){
+    .wrap{flex-direction:column}
+    .right{order:2;width:100%}
+    .left{order:1;width:100%}
+    }
+    .gold {
+        background-color: rgb(250, 246, 38);
+    }
+    .jack {
+        background-color: rgb(104, 247, 91);
+    }
+    .sub-important {
+        background-color: rgb(103, 87, 247);
+    }
+
+    .important {
+        background-color: rgb(238, 84, 84);
+    }
+    .pick {
+        background-color: rgb(38, 170, 194);
+    }
+
+    /* 눈에 띄는 강조 효과 */
+    .find-route {
+        border: 3px solid red;
+    }
+    .flash-highlight {
+    position: relative;
+    background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
+    color: #fff;
+    font-weight: 800;
+    text-shadow: 0 0 10px #fff, 0 0 20px #0ff, 0 0 30px #f0f, 0 0 40px #0ff;
+    box-shadow: 0 0 20px 5px rgba(0,255,255,0.7),
+                0 0 30px 10px rgba(255,0,255,0.6);
+    animation: flashPulse 1s infinite alternate ease-in-out;
+    border-radius: 6px;
+    z-index: 1;
+    }
+
+    @keyframes flashPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 20px 5px rgba(0,255,255,0.8),
+                    0 0 30px 10px rgba(255,0,255,0.7);
+        filter: brightness(1);
+    }
+    100% {
+        transform: scale(1.08);
+        box-shadow: 0 0 40px 10px rgba(0,255,255,1),
+                    0 0 60px 20px rgba(255,0,255,1);
+        filter: brightness(1.4);
+    }
+    }
+    .delete-btn {
+    float: right;
+    background: #ff3b3b;
+    border: none;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 0 4px rgba(255,0,0,0.4);
+    }
+
+    .delete-btn:hover {
+    background: #ff6666;
+    box-shadow: 0 0 8px rgba(255,0,0,0.7);
+    }
+    td select {
+    width: 70%;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: linear-gradient(to right, #f9f9f9, #fff);
+    color: #333;
+    font-size: 14px;
+    /* appearance: none; 기본 화살표 제거 */
+    outline: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    }
+    /* 마우스 오버 시 */
+    td select:hover {
+    border-color: #7bcfff;
+    box-shadow: 0 0 6px rgba(0,150,255,0.3);
+    }
+    .hidden {
+        display: none;
+    }
+    /* 포커스 시 */
+    td select:focus {
+    border-color: #009dff;
+    box-shadow: 0 0 8px rgba(0,150,255,0.5);
+    }
+    </style>
+    <script>
+    var route1 = 'ncnsnncgncnsj';
+    var route2 = 'nnbncgnncjcns';
+    var route3 = 'nncgnnbncjnsc';
+    var route4 = 'nngncnbncncbj';
+
+    const infoMap = {
+        'n' : {
+            value : 250,
+            desc : '일반 만남',
+            class : '',
+        },
+        'c' : {
+            value : 300,
+            desc : '선택',
+            class : '',
+            //class : 'pick',
+        },
+        'j' : {
+            value : '잭팟',
+            desc : '룰렛',
+            class : 'jack',
+        },
+        'g' : {
+            value : '골드',
+            desc : '카드뒤집기',
+            class : 'gold',
+            //class : 'pick',
+        },
+        's' : {
+            value : 550,
+            desc : '사냥',
+            class : 'sub-important',
+        },
+        'b' : {
+            value : 700,
+            desc : '팅기기',
+            class : 'important',
+        },
+        route : null
+    };
+
+    function initPage() {
+        drawTable(route1, 0);
+        drawTable(route2, 1);
+        drawTable(route3, 2);
+        drawTable(route4, 3);
+
+        makeMyRoute();
+        makeMyRoute();
+        makeMyRoute();
+
+        document.querySelector("#makeRouteBtn").addEventListener("click", function(e) {
+                console.log(this)
+            if(this.parentNode.parentNode.parentNode.childElementCount > 15) {
+                alert("더이상 추가 할 수 없습니다.");
+                return;
+            }
+            makeMyRoute();
+        });
+
+        document.querySelector("#myRoute").addEventListener("click", function(e) {
+            if(e.target.tagName != "BUTTON"|| e.target.className != "delete-btn") {
+                return;
+            }
+            
+            if(e.target.parentNode.parentNode.parentNode.childElementCount <6) {
+                alert("더이상 삭제 할 수 없습니다.");
+                return;
+            }
+            e.target.parentNode.parentNode.remove()
+        });
+        document.querySelector("#refresh").addEventListener("click", function(e) {
+            location.reload();
+        });
+        
+        document.querySelector("#findRouteBtn").addEventListener("click", function(e) {
+            var tbody = this.parentNode.parentNode.parentNode;
+            
+            var selectFlag = true;
+            var routeString = "";
+            tbody.querySelectorAll("select").forEach(ele => {
+                if(!ele.value) {
+                    selectFlag = false;
+                }
+                routeString += ele.value;
+            })
+
+            if(!selectFlag) {
+                alert("루트를 모두 선택해주세요");
+                return;
+            }
+
+            find(routeString);
+        });
+    }
+
+    function find(routeString) {
+        // 기존 찾은 루트 삭제
+        var oldRoute = document.querySelector(".flash-highlight");
+        if(oldRoute) {
+            oldRoute.classList.remove("flash-highlight");
+        }
+        var oldSelect = document.querySelector(".find-route");
+        if(oldSelect) {
+            oldRoute.classList.remove("find-route");
+        }
+
+        /*
+        var checkCnt1 = 0;
+        var checkCnt2 = 0;
+        var checkCnt3 = 0;
+        var checkCnt4 = 0;
+        var checkRoute = routeString;
+        while(checkRoute.length > 2) {
+            dupCnt = 0;
+            if(route1.includes(routeString)) {
+                checkCnt1++;
+            }
+            if(route2.includes(routeString)) {
+                checkCnt2++;
+            }
+            if(route3.includes(routeString)) {
+                checkCnt3++;
+            }
+            if(route4.includes(routeString)) {
+                checkCnt4++;
+            }
+
+            if((checkCnt1 + checkCnt2 + checkCnt3 +checkCnt4) === 1) {
+                alert("루트를 찾았습니다.");
+
+
+
+                break;
+            }
+        }
+
+
+
+        return;
+        */
+
+
+
+
+
+        if(!infoMap.route) {
+            infoMap.route = [];
+            infoMap.route[0] = route1 + route2;
+            infoMap.route[1] = route1 + route3;
+            infoMap.route[2] = route1 + route4;
+            infoMap.route[3] = route2 + route1;
+            infoMap.route[4] = route2 + route3;
+            infoMap.route[5] = route2 + route4;
+            infoMap.route[6] = route3 + route1;
+            infoMap.route[7] = route3 + route2;
+            infoMap.route[8] = route3 + route4;
+            infoMap.route[9] = route4 + route1;
+            infoMap.route[10] = route4 + route2;
+            infoMap.route[11] = route4 + route3;
+        }
+
+        var nextRt = new Set();
+        var nextRtIdx = new Set();
+        for(var i = 0; i < infoMap.route.length; i++) {
+            var findIndex = infoMap.route[i].indexOf(routeString);
+            
+            if(infoMap.route[i].includes(routeString)) {
+                console.log(infoMap.route[i])
+            }
+
+            if(findIndex > -1) {
+                if(findIndex + routeString.length < 26) {
+                    // 다음나올거 판단
+                    nextRt.add(infoMap.route[i][findIndex + routeString.length]);
+                    nextRtIdx.add(findIndex%13);
+                }
+
+                //routeDraw(routeString);
+            }
+        }
+
+        if(nextRt.size === 1) {
+
+            console.log(nextRtIdx)
+
+
+
+            alert(`${infoMap[nextRt.values().next().value].desc}(${infoMap[nextRt.values().next().value].value}) 무조건 나옴`);
+        } else {
+            alert("모험을 더진행하여 루트 추가해 주세요.")
+        }
+
+    }
+
+    function routeDraw(routeString) {
+
+
+
+        var startIndex = route.indexOf(routeString);
+        console.log(startIndex)
+    }
+
+    function drawTable(route, routeIndex) {
+        var table = document.querySelector("#routeTable");
+        
+        route.split('').forEach((ele, eleIndex) => {
+            var trgTd = table.querySelectorAll("tbody>tr")[eleIndex].querySelectorAll('td')[routeIndex];
+            
+            trgTd.innerHTML = `${infoMap[ele].desc}<br>(${infoMap[ele].value})`;
+            
+            if(infoMap[ele].class) {
+                trgTd.classList.add(infoMap[ele].class);
+            }
+
+        });
+    }
+
+    function makeMyRoute() {
+        var target = document.querySelector("#makeRouteBtn").parentElement.parentElement;
+
+        target.parentNode.insertBefore(makeRouteTr(), target);
+
+    }
+
+    function makeRouteTr() {
+        var makeTr = document.createElement("tr");
+        makeTr.innerHTML = `
+        <td>
+            <select>
+                <option value="">골라주세요</option>
+                <option value="n">일반 만남(250)</option>
+                <option value="c">선택(300)</option>
+                <option value="j">잭팟(룰렛)</option>
+                <option value="c">카드뒤집기(골드)</option>
+                <option value="s">사냥(550)</option>
+                <option value="b">팅기기(700)</option>
+            </select>
+            <button class="delete-btn">✖</button>
+        </td>
+        `;
+        return makeTr;
+    }
+
+    window.onload =function() {
+        initPage();
+    }
+  </script>
+</head>
+<body>
+  <h2>대모험 길찾기</h2>
+  <div>
+    <p>위에서 아래방향으로 진행됩니다.</p>
+    <p><button id="refresh">새로고침</button></p>
+  </div>
+  <div class="wrap">
+    <div class="panel left hidden" >
+        <table aria-label="오른쪽 1열 13행 테이블">
+            <thead>
+              <tr><th>찾은 루트(아래방향)</th></tr>
+            </thead>
+            <tbody id="myRoute">
+              <tr><td><button id="makeRouteBtn">다음경로 추가</button></td></tr>
+              <tr><td><button id="findRouteBtn">루트 찾기</button></td></tr>
+            </tbody>
+          </table>
+    </div>
+
+    <div class="panel right">
+      <table aria-label="왼쪽 4열 13행 테이블" id="routeTable">
+        <thead>
+          <tr>
+            <th>루트 A</th>
+            <th>루트 B</th>
+            <th>루트 C</th>
+            <th>루트 D</th>
+          </tr>
+        </thead>
+        <tbody class="tbody-scroll">
+          <!-- 13 rows -->
+          <!-- 각 행에 sample 데이터 넣음 -->
+          <tr>
+            <td>250</td>
+            <td>R1B</td>
+            <td>R1C</td>
+            <td>R1D</td>
+          </tr>
+          <tr><td>R2A</td><td>R2B</td><td>R2C</td><td>R2D</td></tr>
+          <tr><td>R3A</td><td>R3B</td><td>R3C</td><td>R3D</td></tr>
+          <tr><td >R4A</td><td>R4B</td><td>R4C</td><td>R4D</td></tr>
+          <tr><td>R5A</td><td>R5B</td><td>R5C</td><td>R5D</td></tr>
+          <tr><td>R6A</td><td>R6B</td><td>R6C</td><td>R6D</td></tr>
+          <tr><td>R7A</td><td>R7B</td><td>R7C</td><td>R7D</td></tr>
+          <tr><td>R8A</td><td>R8B</td><td>R8C</td><td>R8D</td></tr>
+          <tr><td>R9A</td><td>R9B</td><td>R9C</td><td>R9D</td></tr>
+          <tr><td>R10A</td><td>R10B</td><td>R10C</td><td>R10D</td></tr>
+          <tr><td>R11A</td><td>R11B</td><td>R11C</td><td>R11D</td></tr>
+          <tr><td>R12A</td><td>R12B</td><td>R12C</td><td>R12D</td></tr>
+          <tr><td>R13A</td><td>R13B</td><td>R13C</td><td>R13D</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 간단한 스크립트: 테이블 셀 클릭 시 하이라이트 (선택적) -->
+  <script>
+    document.querySelectorAll('td').forEach(td => {
+      td.addEventListener('click', () => {
+        //document.querySelectorAll('td').forEach(t=>t.style.background='');
+        if(td.className.includes("pick")) {
+            td.classList.remove("pick");
+        } else {
+            td.classList.add("pick");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
