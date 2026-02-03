@@ -1,1 +1,85 @@
 # wadada
+
+# OCR 매크로 프로그램
+
+이 프로그램은 LDPlayer(또는 안드로이드 에뮬레이터)에서 
+자동 스크린샷 → OCR → 키워드 매칭 → 매크로 실행을 수행합니다.
+
+---
+
+## 1. 폴더 구조
+
+배포 폴더 예시:
+
+MacroFolder/
+├─ main.exe              ← 매크로 실행 파일
+├─ adb.exe               ← 반드시 포함
+├─ macro.log             ← 실행 로그 (자동 생성)
+└─ README.txt            ← 안내 파일
+
+※ 스크린샷은 임시 폴더(C:\Users\<사용자>\AppData\Local\Temp)에서 처리됩니다.
+
+---
+
+## 2. 필요 조건
+
+1️⃣ Tesseract OCR 설치
+
+- 프로그램이 OCR을 사용하기 위해 Tesseract가 필요합니다.
+- 설치 링크 (Windows): https://github.com/tesseract-ocr/tesseract
+- 설치 경로 : C:\Program Files\Tesseract-OCR\tesseract.exe
+- 설치 시 **Korean 언어팩(kor.traineddata)** 포함되어 있어야 합니다.
+- 설치 중 "Additional language data" 선택 또는 tessdata 폴더 확인
+
+2️⃣ LDPlayer 또는 에뮬레이터 실행
+
+- 프로그램은 연결된 첫 번째 디바이스를 자동 탐색합니다.
+
+---
+
+## 3. 실행 방법
+
+1. `MacroFolder` 전체를 원하는 위치에 복사
+2. `main.exe` 실행
+3. 프로그램이 열리면:
+ - 대기 시간(초)을 설정
+ - 실행 버튼 클릭 → 매크로 시작
+ - 중지 버튼 클릭 → 매크로 종료
+
+---
+
+## 4. 로그 확인
+
+- `macro.log` 파일에 **매크로 진행 상황과 OCR 결과**가 기록됩니다.
+- UI 내 OCR 텍스트는 **실시간 인식된 한글** 표시
+
+---
+
+## 5. 문제 해결
+
+- **스크린샷이 0KB**  
+- LDPlayer가 실행 중인지 확인
+- adb.exe가 MacroFolder에 있는지 확인
+
+- **OCR 인식 안됨**
+- Tesseract가 설치되어 있는지, 경로가 정확한지 확인
+- Korean 언어 데이터가 포함되어 있는지 확인
+
+- **프로그램 바로 종료됨**
+- exe 경로에 한글/특수문자가 포함되어 있으면 임시 폴더를 사용하도록 되어 있음
+- 프로그램을 다른 경로(영문/숫자)에서 실행 권장
+
+---
+
+## 6. 배포 시 주의
+
+- 반드시 **adb.exe**와 함께 배포
+- Tesseract는 사용자 시스템에 설치 필요 (exe 포함 불가)
+- LDPlayer/에뮬레이터가 **첫 번째 디바이스로 연결**되어 있어야 매크로 정상 동작
+
+---
+
+📌 참고
+
+- 프로그램 종료 시에도 임시 폴더에 남은 스크린샷은 자동 삭제되지 않으므로 필요시 직접 삭제 가능
+- exe 실행 후 로그와 OCR 텍스트를 통해 정상 동작 여부 확인 가능
