@@ -12,9 +12,13 @@
 배포 폴더 예시:
 
 MacroFolder/
+
 ├─ main.exe              ← 매크로 실행 파일
+
 ├─ adb.exe               ← 반드시 포함
+
 ├─ macro.log             ← 실행 로그 (자동 생성)
+
 └─ README.txt            ← 안내 파일
 
 ※ 스크린샷은 임시 폴더(C:\Users\<사용자>\AppData\Local\Temp)에서 처리됩니다.
@@ -23,7 +27,7 @@ MacroFolder/
 
 ## 2. 필요 조건
 
-1️⃣ Tesseract OCR 설치
+1️⃣ Tesseract OCR 설치(필수)
 
 - 프로그램이 OCR을 사용하기 위해 Tesseract가 필요합니다.
 - 설치 링크 (Windows): https://github.com/tesseract-ocr/tesseract
@@ -31,8 +35,9 @@ MacroFolder/
 - 설치 시 **Korean 언어팩(kor.traineddata)** 포함되어 있어야 합니다.
 - 설치 중 "Additional language data" 선택 또는 tessdata 폴더 확인
 
-2️⃣ LDPlayer 또는 에뮬레이터 실행
-
+2️⃣ LDPlayer9(필수)
+- 설정 -> 디스플레이 -> 해상도 -> 모바일 -> 720x1280(DPI320)
+- 설정 -> 기타 -> ADB 디버깅 -> 로컬디버깅
 - 프로그램은 연결된 첫 번째 디바이스를 자동 탐색합니다.
 
 ---
