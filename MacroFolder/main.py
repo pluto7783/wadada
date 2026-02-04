@@ -6,6 +6,7 @@ import pytesseract
 import re
 import tempfile
 import numpy as np
+import random
 from PIL import Image
 import cv2
 
@@ -32,6 +33,19 @@ def write_log(msg):
         f.write(line + "\n")
     return line
 
+# ===== 랜덤 좌표 함수 =====
+def random_tap(x, y, min_offset=3, max_offset=8):
+    dx = random.randint(-max_offset, max_offset)
+    dy = random.randint(-max_offset, max_offset)
+
+    # 너무 작은 움직임 방지
+    if abs(dx) < min_offset:
+        dx = min_offset if dx >= 0 else -min_offset
+    if abs(dy) < min_offset:
+        dy = min_offset if dy >= 0 else -min_offset
+
+    return x + dx, y + dy
+
 # ===== 디바이스 자동 탐색 =====
 def get_device_id():
     try:
@@ -40,7 +54,7 @@ def get_device_id():
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            creationflags=subprocess.CREATE_NO_WINDOW  # 👈 콘솔 안 띄움
+            creationflags=subprocess.CREATE_NO_WINDOW
         )
         lines = result.stdout.strip().splitlines()
         for line in lines[1:]:
@@ -74,7 +88,7 @@ def take_screenshot(device_id):
 # ===== 매크로 스레드 =====
 class MacroThread(QThread):
     log = pyqtSignal(str)
-    ocr_text = pyqtSignal(str)  # OCR 텍스트 전용
+    ocr_text = pyqtSignal(str)
     finished = pyqtSignal()
 
     def __init__(self, wait_seconds):
@@ -121,7 +135,7 @@ class MacroThread(QThread):
             # OCR
             text = pytesseract.image_to_string(gray, lang="kor", config="--psm 6")
             hangul_text = re.sub(r"[^가-힣]", "", text)
-            self.ocr_text.emit(f"📄 인식 텍스트: {hangul_text}")  # 상단 표시
+            self.ocr_text.emit(f"📄 인식 텍스트: {hangul_text}")
 
             msg = write_log(f"OCR 원문: {text}")
             self.log.emit(msg)
@@ -135,13 +149,14 @@ class MacroThread(QThread):
             msg = write_log("키워드 없음 → 매크로 실행")
             self.log.emit(msg)
 
-            # 매크로 액션 (모두 콘솔창 없이 실행)
+            # 매크로 액션 (랜덤 클릭 포함)
             taps = [(60,1240),(478,800),(60,1240),(360,1200)]
             delays = [1.5,2,2,0]
 
             for (x,y), delay in zip(taps, delays):
+                tx, ty = random_tap(x, y)
                 subprocess.run(
-                    [ADB_PATH, "-s", self.device_id, "shell", "input", "tap", str(x), str(y)],
+                    [ADB_PATH, "-s", self.device_id, "shell", "input", "tap", str(tx), str(ty)],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                     shell=True,
                     creationflags=subprocess.CREATE_NO_WINDOW
@@ -169,15 +184,15 @@ class MainWindow(QWidget):
         self.label = QLabel("대기 시간 (초)")
         self.spin = QSpinBox()
         self.spin.setRange(1, 9999)
-        self.spin.setValue(20)
+        self.spin.setValue(15)
 
         self.button = QPushButton("실행")
         self.button.clicked.connect(self.toggle)
 
-        self.ocr_label = QTextEdit()  # OCR 텍스트 상단
+        self.ocr_label = QTextEdit()
         self.ocr_label.setReadOnly(True)
 
-        self.log = QTextEdit()        # 진행 로그
+        self.log = QTextEdit()
         self.log.setReadOnly(True)
 
         layout = QVBoxLayout()
