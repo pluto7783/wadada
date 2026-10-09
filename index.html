@@ -93,11 +93,14 @@
                 <button class="storage-button" id="save-settings" type="button">저장</button>
                 <button class="storage-button" id="black-spirit-button" type="button">흑령세팅</button>
                 <button class="storage-button" id="load-settings" type="button">불러오기</button>
+                <button class="storage-button" id="export-settings" type="button">파일로 내보내기</button>
+                <button class="storage-button" id="import-settings" type="button">파일 가져오기</button>
                 <button class="storage-button" id="copy-setting" type="button">세팅 복사</button>
                 <button class="add-button" id="add-row" type="button">＋ 세팅 추가</button>
             </div>
         </div>
         <p class="footnote" id="storage-status" role="status" aria-live="polite"></p>
+        <input id="settings-file" type="file" accept="application/json,.json" hidden>
         <div class="table-wrap">
             <table>
                 <thead>
@@ -567,6 +570,43 @@
             storageStatus.textContent = '저장한 세팅을 불러왔습니다.';
         } catch (error) {
             storageStatus.textContent = '저장된 세팅을 불러오지 못했습니다.';
+        }
+    });
+    document.querySelector('#export-settings').addEventListener('click', () => {
+        try {
+            const settings = [...body.rows].map(row => ({
+                name: row.querySelector('input[type="text"]').value,
+                values: Object.fromEntries([...row.querySelectorAll('input[type="number"]')].map(input => [input.getAttribute('aria-label'), input.value]))
+            }));
+            const file = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(file);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'game-stat-settings.json';
+            link.click();
+            URL.revokeObjectURL(url);
+            storageStatus.textContent = '현재 세팅을 JSON 파일로 내보냈습니다.';
+        } catch (error) {
+            storageStatus.textContent = '파일을 내보내지 못했습니다.';
+        }
+    });
+    const settingsFile = document.querySelector('#settings-file');
+    document.querySelector('#import-settings').addEventListener('click', () => settingsFile.click());
+    settingsFile.addEventListener('change', async () => {
+        const file = settingsFile.files[0];
+        if (!file) return;
+        try {
+            const contents = JSON.parse(await file.text());
+            if (!Array.isArray(contents) || contents.some(setting =>
+                !setting || typeof setting !== 'object' || !(Array.isArray(setting.values) || (setting.values && typeof setting.values === 'object'))
+            )) throw new Error('Invalid settings file');
+            localStorage.setItem(storageKey, JSON.stringify(contents));
+            document.querySelector('#load-settings').click();
+            storageStatus.textContent = 'JSON 파일에서 세팅을 가져왔습니다.';
+        } catch (error) {
+            storageStatus.textContent = '가져오지 못했습니다. 이 계산기에서 내보낸 JSON 파일인지 확인해 주세요.';
+        } finally {
+            settingsFile.value = '';
         }
     });
     body.addEventListener('input', update);
