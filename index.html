@@ -1,450 +1,586 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>와다다던전런</title>
-  <style>
-    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
-    body{margin:20px;background:#f6f8fa;color:#111}
-    .wrap{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
-    .panel{background:#fff;border:1px solid #e1e4e8;border-radius:8px;padding:12px;box-shadow:0 2px 6px rgba(20,20,20,0.03)}
-    
-    
-    /* 우측 큰 테이블 (이제 오른쪽으로 이동) */
-    .right{flex:1;min-width:0;order:2}
-    table{border-collapse:collapse;width:100%;table-layout:fixed}
-    th,td{border:1px solid #dfe3e8;padding:8px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    th{background:#f0f4f8;font-weight:600}
-    
-    
-    /* 좌측 좁은 테이블 */
-    .left{width:220px;order:1}
-    .left table th, .left table td{padding:10px}
-    
-    
-    .tbody-scroll{max-height:520px;overflow:auto}
-    
-    
-    /* 반응형: 모바일에서 큰 테이블이 위로 올라가도록 */
-    @media(max-width:720px){
-    .wrap{flex-direction:column}
-    .right{order:2;width:100%}
-    .left{order:1;width:100%}
-    }
-    .gold {
-        background-color: rgb(250, 246, 38);
-    }
-    .jack {
-        background-color: rgb(104, 247, 91);
-    }
-    .sub-important {
-        background-color: rgb(103, 87, 247);
-    }
-
-    .important {
-        background-color: rgb(238, 84, 84);
-    }
-    .pick {
-        background-color: rgb(38, 170, 194);
-    }
-
-    /* 눈에 띄는 강조 효과 */
-    .find-route {
-        border: 3px solid red;
-    }
-    .flash-highlight {
-    position: relative;
-    background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
-    color: #fff;
-    font-weight: 800;
-    text-shadow: 0 0 10px #fff, 0 0 20px #0ff, 0 0 30px #f0f, 0 0 40px #0ff;
-    box-shadow: 0 0 20px 5px rgba(0,255,255,0.7),
-                0 0 30px 10px rgba(255,0,255,0.6);
-    animation: flashPulse 1s infinite alternate ease-in-out;
-    border-radius: 6px;
-    z-index: 1;
-    }
-
-    @keyframes flashPulse {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 0 20px 5px rgba(0,255,255,0.8),
-                    0 0 30px 10px rgba(255,0,255,0.7);
-        filter: brightness(1);
-    }
-    100% {
-        transform: scale(1.08);
-        box-shadow: 0 0 40px 10px rgba(0,255,255,1),
-                    0 0 60px 20px rgba(255,0,255,1);
-        filter: brightness(1.4);
-    }
-    }
-    .delete-btn {
-    float: right;
-    background: #ff3b3b;
-    border: none;
-    color: #fff;
-    font-weight: bold;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    line-height: 22px;
-    text-align: center;
-    cursor: pointer;
-    transition: 0.2s;
-    box-shadow: 0 0 4px rgba(255,0,0,0.4);
-    }
-
-    .delete-btn:hover {
-    background: #ff6666;
-    box-shadow: 0 0 8px rgba(255,0,0,0.7);
-    }
-    td select {
-    width: 70%;
-    padding: 6px 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background: linear-gradient(to right, #f9f9f9, #fff);
-    color: #333;
-    font-size: 14px;
-    /* appearance: none; 기본 화살표 제거 */
-    outline: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-    }
-    /* 마우스 오버 시 */
-    td select:hover {
-    border-color: #7bcfff;
-    box-shadow: 0 0 6px rgba(0,150,255,0.3);
-    }
-    .hidden {
-        display: none;
-    }
-    /* 포커스 시 */
-    td select:focus {
-    border-color: #009dff;
-    box-shadow: 0 0 8px rgba(0,150,255,0.5);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10131b">
+    <title>능력치 세팅 계산기</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif;
+            background: #10131b;
+            color: #edf0f7;
+            font-synthesis: none;
+        }
+        * { box-sizing: border-box; }
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            background: radial-gradient(ellipse at 15% 0%, #25213b 0, transparent 38%), #10131b;
+        }
+        main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 68px 0 80px; }
+        .eyebrow { color: #a99bff; font-size: 12px; font-weight: 800; letter-spacing: .16em; }
+        h1 { margin: 12px 0 8px; font-size: clamp(28px, 5vw, 42px); letter-spacing: -.045em; }
+        .intro { margin: 0; color: #a5aabc; font-size: 14px; line-height: 1.7; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 30px 0 14px; }
+        .toolbar-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+        .count { color: #9ba1b4; font-size: 13px; }
+        button { font: inherit; cursor: pointer; }
+        .add-button { border: 1px solid #7668da; border-radius: 10px; padding: 10px 15px; background: #6c5ce7; color: white; font-size: 13px; font-weight: 700; transition: background .15s, transform .15s; }
+        .add-button:hover { background: #7b6cf0; transform: translateY(-1px); }
+        .storage-button { border: 1px solid #343a4b; border-radius: 10px; padding: 10px 13px; background: #1b1f2a; color: #d6d9e4; font-size: 13px; font-weight: 700; }
+        .storage-button:hover { border-color: #7668da; color: white; }
+        .table-wrap { overflow-x: auto; border: 1px solid #292e3c; border-radius: 14px; background: #171a23; box-shadow: 0 24px 70px #0003; }
+        table { width: 100%; min-width: 850px; border-collapse: collapse; text-align: left; }
+        thead { background: #1d202b; }
+        th { padding: 15px 14px; color: #a5aabc; font-size: 11px; font-weight: 700; letter-spacing: .035em; white-space: nowrap; }
+        th:first-child, td:first-child { padding-left: 22px; }
+        tbody tr { border-top: 1px solid #292e3c; transition: background .15s; }
+        tbody tr:hover { background: #1c202c; }
+        tbody tr.selected { background: #25243a; box-shadow: inset 3px 0 #a99bff; }
+        td { padding: 12px 10px; }
+        .rank { width: 62px; color: #8d93a6; font-size: 13px; font-weight: 700; }
+        .rank.top { color: #f2c96d; }
+        .compare-check { width: 16px; height: 16px; margin: 0; accent-color: #8d7bff; vertical-align: middle; cursor: pointer; }
+        .setting-name { width: 150px; }
+        input { width: 100%; border: 1px solid #343a4b; border-radius: 8px; outline: none; background: #11141c; color: #eef0f7; font: inherit; transition: border-color .15s, box-shadow .15s; }
+        input:focus { border-color: #8d7bff; box-shadow: 0 0 0 3px #8d7bff24; }
+        input[type="text"] { padding: 10px 11px; }
+        input[type="number"] { min-width: 112px; padding: 10px 9px; font-variant-numeric: tabular-nums; }
+        input::placeholder { color: #646b7e; }
+        .result { min-width: 130px; color: #b2a7ff; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .remove-button { border: 0; padding: 8px; background: transparent; color: #777e91; font-size: 18px; line-height: 1; }
+        .remove-button:hover { color: #ff858d; }
+        .footnote { margin: 14px 2px; color: #81879a; font-size: 12px; line-height: 1.7; }
+        .black-spirit-panel { margin-top: 18px; padding: 22px; border: 1px solid #343047; border-radius: 14px; background: #171822; }
+        .black-spirit-panel[hidden] { display: none; }
+        .black-spirit-panel h2 { margin: 0 0 6px; font-size: 18px; }
+        .panel-description { margin: 0 0 18px; color: #9ba1b4; font-size: 13px; }
+        .rate-help { position: relative; display: inline-block; margin: -8px 0 16px; }
+        .rate-help button { border: 0; padding: 0; background: transparent; color: #b2a7ff; font: inherit; font-size: 12px; cursor: help; }
+        .rate-tooltip { display: none; position: absolute; z-index: 5; top: calc(100% + 8px); left: 0; width: max-content; max-width: min(340px, calc(100vw - 56px)); padding: 12px 14px; border: 1px solid #45405f; border-radius: 9px; background: #242333; color: #e3e2ed; box-shadow: 0 12px 30px #0007; font-size: 12px; line-height: 1.8; }
+        .rate-help:hover .rate-tooltip, .rate-help:focus-within .rate-tooltip, .rate-tooltip.visible { display: block; }
+        .point-fields { display: grid; grid-template-columns: repeat(2, minmax(180px, 260px)); gap: 12px; }
+        .point-fields label { display: grid; gap: 8px; color: #b4b8c7; font-size: 12px; }
+        .point-fields input { padding: 10px 11px; }
+        .allocation-fields { display: grid; grid-template-columns: repeat(2, minmax(180px, 260px)); gap: 12px; margin-top: 18px; }
+        .allocation-fields[hidden] { display: none; }
+        .allocation-fields label { display: grid; gap: 8px; color: #b4b8c7; font-size: 12px; }
+        .allocation-fields input { padding: 10px 11px; }
+        .gain-preview { color: #a99bff; font-size: 12px; font-weight: 700; }
+        .point-summary { margin: 16px 0 0; color: #b2a7ff; font-size: 13px; font-weight: 700; }
+        .point-summary.invalid { color: #ff858d; }
+        .point-fields label:has([data-points="crit"]), .point-fields label:has([data-points="general"]), .point-fields label:has([data-points="skill"]) { display: none; }
+        .apply-button { margin-top: 16px; border: 1px solid #7668da; border-radius: 9px; padding: 10px 15px; background: #6c5ce7; color: white; font-size: 13px; font-weight: 700; }
+        .apply-button:hover { background: #7b6cf0; }
+        @media (max-width: 600px) { main { width: calc(100% - 28px); padding-top: 42px; } .toolbar { align-items: flex-end; } .toolbar-actions { gap: 6px; } .add-button, .storage-button { padding: 9px 10px; white-space: nowrap; } .point-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     </style>
-    <script>
-    var route1 = 'ncnsnncgncnsj';
-    var route2 = 'nnbncgnncjcns';
-    var route3 = 'nncgnnbncjnsc';
-    var route4 = 'nngncnbncncbj';
-
-    const infoMap = {
-        'n' : {
-            value : 250,
-            desc : '일반 만남',
-            class : '',
-        },
-        'c' : {
-            value : 300,
-            desc : '선택',
-            class : '',
-            //class : 'pick',
-        },
-        'j' : {
-            value : '잭팟',
-            desc : '룰렛',
-            class : 'jack',
-        },
-        'g' : {
-            value : '골드',
-            desc : '카드뒤집기',
-            class : 'gold',
-            //class : 'pick',
-        },
-        's' : {
-            value : 550,
-            desc : '사냥',
-            class : 'sub-important',
-        },
-        'b' : {
-            value : 700,
-            desc : '팅기기',
-            class : 'important',
-        },
-        route : null
-    };
-
-    function initPage() {
-        drawTable(route1, 0);
-        drawTable(route2, 1);
-        drawTable(route3, 2);
-        drawTable(route4, 3);
-
-        makeMyRoute();
-        makeMyRoute();
-        makeMyRoute();
-
-        document.querySelector("#makeRouteBtn").addEventListener("click", function(e) {
-                console.log(this)
-            if(this.parentNode.parentNode.parentNode.childElementCount > 15) {
-                alert("더이상 추가 할 수 없습니다.");
-                return;
-            }
-            makeMyRoute();
-        });
-
-        document.querySelector("#myRoute").addEventListener("click", function(e) {
-            if(e.target.tagName != "BUTTON"|| e.target.className != "delete-btn") {
-                return;
-            }
-            
-            if(e.target.parentNode.parentNode.parentNode.childElementCount <6) {
-                alert("더이상 삭제 할 수 없습니다.");
-                return;
-            }
-            e.target.parentNode.parentNode.remove()
-        });
-        document.querySelector("#refresh").addEventListener("click", function(e) {
-            location.reload();
-        });
-        
-        document.querySelector("#findRouteBtn").addEventListener("click", function(e) {
-            var tbody = this.parentNode.parentNode.parentNode;
-            
-            var selectFlag = true;
-            var routeString = "";
-            tbody.querySelectorAll("select").forEach(ele => {
-                if(!ele.value) {
-                    selectFlag = false;
-                }
-                routeString += ele.value;
-            })
-
-            if(!selectFlag) {
-                alert("루트를 모두 선택해주세요");
-                return;
-            }
-
-            find(routeString);
-        });
-    }
-
-    function find(routeString) {
-        // 기존 찾은 루트 삭제
-        var oldRoute = document.querySelector(".flash-highlight");
-        if(oldRoute) {
-            oldRoute.classList.remove("flash-highlight");
-        }
-        var oldSelect = document.querySelector(".find-route");
-        if(oldSelect) {
-            oldRoute.classList.remove("find-route");
-        }
-
-        /*
-        var checkCnt1 = 0;
-        var checkCnt2 = 0;
-        var checkCnt3 = 0;
-        var checkCnt4 = 0;
-        var checkRoute = routeString;
-        while(checkRoute.length > 2) {
-            dupCnt = 0;
-            if(route1.includes(routeString)) {
-                checkCnt1++;
-            }
-            if(route2.includes(routeString)) {
-                checkCnt2++;
-            }
-            if(route3.includes(routeString)) {
-                checkCnt3++;
-            }
-            if(route4.includes(routeString)) {
-                checkCnt4++;
-            }
-
-            if((checkCnt1 + checkCnt2 + checkCnt3 +checkCnt4) === 1) {
-                alert("루트를 찾았습니다.");
-
-
-
-                break;
-            }
-        }
-
-
-
-        return;
-        */
-
-
-
-
-
-        if(!infoMap.route) {
-            infoMap.route = [];
-            infoMap.route[0] = route1 + route2;
-            infoMap.route[1] = route1 + route3;
-            infoMap.route[2] = route1 + route4;
-            infoMap.route[3] = route2 + route1;
-            infoMap.route[4] = route2 + route3;
-            infoMap.route[5] = route2 + route4;
-            infoMap.route[6] = route3 + route1;
-            infoMap.route[7] = route3 + route2;
-            infoMap.route[8] = route3 + route4;
-            infoMap.route[9] = route4 + route1;
-            infoMap.route[10] = route4 + route2;
-            infoMap.route[11] = route4 + route3;
-        }
-
-        var nextRt = new Set();
-        var nextRtIdx = new Set();
-        for(var i = 0; i < infoMap.route.length; i++) {
-            var findIndex = infoMap.route[i].indexOf(routeString);
-            
-            if(infoMap.route[i].includes(routeString)) {
-                console.log(infoMap.route[i])
-            }
-
-            if(findIndex > -1) {
-                if(findIndex + routeString.length < 26) {
-                    // 다음나올거 판단
-                    nextRt.add(infoMap.route[i][findIndex + routeString.length]);
-                    nextRtIdx.add(findIndex%13);
-                }
-
-                //routeDraw(routeString);
-            }
-        }
-
-        if(nextRt.size === 1) {
-
-            console.log(nextRtIdx)
-
-
-
-            alert(`${infoMap[nextRt.values().next().value].desc}(${infoMap[nextRt.values().next().value].value}) 무조건 나옴`);
-        } else {
-            alert("모험을 더진행하여 루트 추가해 주세요.")
-        }
-
-    }
-
-    function routeDraw(routeString) {
-
-
-
-        var startIndex = route.indexOf(routeString);
-        console.log(startIndex)
-    }
-
-    function drawTable(route, routeIndex) {
-        var table = document.querySelector("#routeTable");
-        
-        route.split('').forEach((ele, eleIndex) => {
-            var trgTd = table.querySelectorAll("tbody>tr")[eleIndex].querySelectorAll('td')[routeIndex];
-            
-            trgTd.innerHTML = `${infoMap[ele].desc}<br>(${infoMap[ele].value})`;
-            
-            if(infoMap[ele].class) {
-                trgTd.classList.add(infoMap[ele].class);
-            }
-
-        });
-    }
-
-    function makeMyRoute() {
-        var target = document.querySelector("#makeRouteBtn").parentElement.parentElement;
-
-        target.parentNode.insertBefore(makeRouteTr(), target);
-
-    }
-
-    function makeRouteTr() {
-        var makeTr = document.createElement("tr");
-        makeTr.innerHTML = `
-        <td>
-            <select>
-                <option value="">골라주세요</option>
-                <option value="n">일반 만남(250)</option>
-                <option value="c">선택(300)</option>
-                <option value="j">잭팟(룰렛)</option>
-                <option value="c">카드뒤집기(골드)</option>
-                <option value="s">사냥(550)</option>
-                <option value="b">팅기기(700)</option>
-            </select>
-            <button class="delete-btn">✖</button>
-        </td>
-        `;
-        return makeTr;
-    }
-
-    window.onload =function() {
-        initPage();
-    }
-  </script>
 </head>
 <body>
-  <h2>대모험 길찾기</h2>
-  <div>
-    <p>위에서 아래방향으로 진행됩니다.</p>
-    <p><button id="refresh">새로고침</button></p>
-  </div>
-  <div class="wrap">
-    <div class="panel left hidden" >
-        <table aria-label="오른쪽 1열 13행 테이블">
-            <thead>
-              <tr><th>찾은 루트(아래방향)</th></tr>
-            </thead>
-            <tbody id="myRoute">
-              <tr><td><button id="makeRouteBtn">다음경로 추가</button></td></tr>
-              <tr><td><button id="findRouteBtn">루트 찾기</button></td></tr>
-            </tbody>
-          </table>
-    </div>
+<main>
+    <header>
+        <div class="eyebrow">BUILD LAB · DAMAGE CALCULATOR</div>
+        <h1>능력치 세팅 계산기</h1>
+        <p class="intro">세팅별 능력치를 입력하고, 곱산 결과로 가장 높은 조합을 비교해 보세요.</p>
+    </header>
 
-    <div class="panel right">
-      <table aria-label="왼쪽 4열 13행 테이블" id="routeTable">
-        <thead>
-          <tr>
-            <th>루트 A</th>
-            <th>루트 B</th>
-            <th>루트 C</th>
-            <th>루트 D</th>
-          </tr>
-        </thead>
-        <tbody class="tbody-scroll">
-          <!-- 13 rows -->
-          <!-- 각 행에 sample 데이터 넣음 -->
-          <tr>
-            <td>250</td>
-            <td>R1B</td>
-            <td>R1C</td>
-            <td>R1D</td>
-          </tr>
-          <tr><td>R2A</td><td>R2B</td><td>R2C</td><td>R2D</td></tr>
-          <tr><td>R3A</td><td>R3B</td><td>R3C</td><td>R3D</td></tr>
-          <tr><td >R4A</td><td>R4B</td><td>R4C</td><td>R4D</td></tr>
-          <tr><td>R5A</td><td>R5B</td><td>R5C</td><td>R5D</td></tr>
-          <tr><td>R6A</td><td>R6B</td><td>R6C</td><td>R6D</td></tr>
-          <tr><td>R7A</td><td>R7B</td><td>R7C</td><td>R7D</td></tr>
-          <tr><td>R8A</td><td>R8B</td><td>R8C</td><td>R8D</td></tr>
-          <tr><td>R9A</td><td>R9B</td><td>R9C</td><td>R9D</td></tr>
-          <tr><td>R10A</td><td>R10B</td><td>R10C</td><td>R10D</td></tr>
-          <tr><td>R11A</td><td>R11B</td><td>R11C</td><td>R11D</td></tr>
-          <tr><td>R12A</td><td>R12B</td><td>R12C</td><td>R12D</td></tr>
-          <tr><td>R13A</td><td>R13B</td><td>R13C</td><td>R13D</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- 간단한 스크립트: 테이블 셀 클릭 시 하이라이트 (선택적) -->
-  <script>
-    document.querySelectorAll('td').forEach(td => {
-      td.addEventListener('click', () => {
-        //document.querySelectorAll('td').forEach(t=>t.style.background='');
-        if(td.className.includes("pick")) {
-            td.classList.remove("pick");
-        } else {
-            td.classList.add("pick");
-        }
-      });
+    <section aria-label="능력치 세팅 비교">
+        <div class="toolbar">
+            <span class="count" id="count">세팅 0개</span>
+            <div class="toolbar-actions">
+                <button class="storage-button" id="save-settings" type="button">저장</button>
+                <button class="storage-button" id="black-spirit-button" type="button">흑령세팅</button>
+                <button class="storage-button" id="load-settings" type="button">불러오기</button>
+                <button class="storage-button" id="copy-setting" type="button">세팅 복사</button>
+                <button class="add-button" id="add-row" type="button">＋ 세팅 추가</button>
+            </div>
+        </div>
+        <p class="footnote" id="storage-status" role="status" aria-live="polite"></p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th scope="col">순위</th>
+                    <th scope="col">비교</th>
+                    <th scope="col">세팅 이름</th>
+                    <th scope="col">치명타 피해량</th>
+                    <th scope="col">무공 피해량</th>
+                    <th scope="col">일반 적 피해량 증가</th>
+                    <th scope="col">모든 피해량</th>
+                    <th scope="col">무기 공격력</th>
+                    <th scope="col">최종값 (1억)</th>
+                    <th scope="col">비교율</th>
+                    <th scope="col"><span class="sr-only">삭제</span></th>
+                </tr>
+                </thead>
+                <tbody id="settings"></tbody>
+            </table>
+        </div>
+        <p class="footnote">각 칸에 배율을 입력하면 다섯 값을 곱해 최종값을 계산합니다. 예: 1.2 × 1.1 × 1.05 × 1.1 × 1.15</p>
+    </section>
+    <section class="black-spirit-panel" id="black-spirit-panel" aria-labelledby="black-spirit-title" hidden>
+        <h2 id="black-spirit-title">흑령세팅 포인트 배분</h2>
+        <p class="panel-description" id="selected-setting-label">선택한 세팅에 사용할 포인트를 입력하세요.</p>
+        <div class="rate-help">
+            <button type="button" id="point-rate-trigger" aria-expanded="false" aria-controls="point-rate-tooltip" aria-describedby="point-rate-tooltip" title="흑령: 치명타 5P당 +3, 일반 적 피해량 10P당 +3, 무공 피해량 10P당 +3. 별호: 무공 피해량 15P당 +2, 모든 피해량 20P당 +1.">포인트당 능력치 증가량 ⓘ</button>
+            <div class="rate-tooltip" id="point-rate-tooltip" role="tooltip">
+                흑령: 치명타 피해량 5포인트당 +3 · 일반 적 피해량 증가 10포인트당 +3 · 무공 피해량 10포인트당 +3<br>
+                별호: 무공 피해량 15포인트당 +2 · 모든 피해량 20포인트당 +1
+            </div>
+        </div>
+        <div class="point-fields">
+            <label>흑령 포인트<input type="number" min="0" step="1" value="0" data-points="total"></label>
+            <label>별호 포인트<input type="number" min="0" step="1" value="0" data-points="title-total"></label>
+            <label>치명타 피해량 포인트<input type="number" min="0" step="1" value="0" data-points="crit"></label>
+            <label>일반 적 피해량 증가 포인트<input type="number" min="0" step="1" value="0" data-points="general"></label>
+            <label>무공 피해량 포인트<input type="number" min="0" step="1" value="0" data-points="skill"></label>
+        </div>
+        <div class="allocation-fields" id="allocation-fields" hidden>
+            <label>흑령 · 치명타 피해량<input type="number" min="0" step="5" value="0" data-allocation="crit"><small class="gain-preview" data-gain-for="crit">증가량 +0</small></label>
+            <label>흑령 · 일반 적 피해량 증가<input type="number" min="0" step="10" value="0" data-allocation="general"><small class="gain-preview" data-gain-for="general">증가량 +0</small></label>
+            <label>흑령 · 무공 피해량<input type="number" min="0" step="10" value="0" data-allocation="black-skill"><small class="gain-preview" data-gain-for="black-skill">증가량 +0</small></label>
+            <label>별호 · 무공 피해량<input type="number" min="0" step="15" value="0" data-allocation="title-skill"><small class="gain-preview" data-gain-for="title-skill">증가량 +0</small></label>
+            <label>별호 · 모든 피해량<input type="number" min="0" step="20" value="0" data-allocation="title-all"><small class="gain-preview" data-gain-for="title-all">증가량 +0</small></label>
+        </div>
+        <p class="point-summary" id="point-summary" aria-live="polite">남은 포인트: 0</p>
+    </section>
+</main>
+<script>
+    const body = document.querySelector('#settings');
+    const count = document.querySelector('#count');
+    const storageStatus = document.querySelector('#storage-status');
+    const blackSpiritPanel = document.querySelector('#black-spirit-panel');
+    const selectedSettingLabel = document.querySelector('#selected-setting-label');
+    const pointSummary = document.querySelector('#point-summary');
+    const allocationFields = document.querySelector('#allocation-fields');
+    const rateTooltip = document.querySelector('#point-rate-tooltip');
+    document.querySelector('#point-rate-trigger').addEventListener('click', event => {
+        const isVisible = rateTooltip.classList.toggle('visible');
+        event.currentTarget.setAttribute('aria-expanded', String(isVisible));
     });
-  </script>
+    const storageKey = 'build-lab-stat-settings-v1';
+    blackSpiritPanel.querySelectorAll('[data-points]:not([data-points="total"]):not([data-points="title-total"])').forEach(input => input.closest('label').remove());
+    let nextId = 1;
+    let selectedRow = null;
+    let recommendedAllocation = null;
+
+    function updateAllocationSummary() {
+        const getPoints = key => Number(allocationFields.querySelector(`[data-allocation="${key}"]`).value) || 0;
+        const allocation = {
+            crit: getPoints('crit'),
+            general: getPoints('general'),
+            blackSkill: getPoints('black-skill'),
+            titleSkill: getPoints('title-skill'),
+            titleAll: getPoints('title-all')
+        };
+        const gainRates = {
+            crit: [5, 3],
+            general: [10, 3],
+            'black-skill': [10, 3],
+            'title-skill': [15, 2],
+            'title-all': [20, 1]
+        };
+        for (const [key, [pointsPerLevel, gainPerLevel]] of Object.entries(gainRates)) {
+            const points = getPoints(key);
+            const gain = points / pointsPerLevel * gainPerLevel;
+            allocationFields.querySelector(`[data-gain-for="${key}"]`).textContent = `증가량 +${gain.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}`;
+        }
+        allocation.usedBlack = allocation.crit + allocation.general + allocation.blackSkill;
+        allocation.usedTitle = allocation.titleSkill + allocation.titleAll;
+        const blackTotalInput = blackSpiritPanel.querySelector('[data-points="total"]');
+        const titleTotalInput = blackSpiritPanel.querySelector('[data-points="title-total"]');
+        const blackTotal = Math.floor(Number(blackTotalInput.value) || 0);
+        const titleTotal = Math.floor(Number(titleTotalInput.value) || 0);
+        const allocationInputs = [...allocationFields.querySelectorAll('[data-allocation]')];
+        allocationInputs.forEach(input => {
+            const isBlack = ['crit', 'general', 'black-skill'].includes(input.dataset.allocation);
+            const poolLimit = isBlack ? blackTotal : titleTotal;
+            const otherUsed = allocationInputs
+                .filter(other => other !== input && (['crit', 'general', 'black-skill'].includes(other.dataset.allocation) === isBlack))
+                .reduce((sum, other) => sum + (Number(other.value) || 0), 0);
+            input.max = Math.max(0, poolLimit - otherUsed);
+        });
+        const validSteps = blackTotalInput.validity.valid && titleTotalInput.validity.valid
+            && allocationInputs.every(input => input.value !== '' && input.validity.valid && Number.isInteger(Number(input.value)));
+        const withinBudget = allocation.usedBlack <= blackTotal && allocation.usedTitle <= titleTotal;
+        if (validSteps && withinBudget) {
+            recommendedAllocation = allocation;
+            pointSummary.textContent = `배분 확인 · 흑령 ${allocation.usedBlack}/${blackTotal}포인트, 별호 ${allocation.usedTitle}/${titleTotal}포인트 · 치명타 Lv.${allocation.crit / 5}, 일반 적 Lv.${allocation.general / 10}, 흑령 무공 Lv.${allocation.blackSkill / 10}, 별호 무공 Lv.${allocation.titleSkill / 15}, 모든 피해량 Lv.${allocation.titleAll / 20}`;
+            pointSummary.classList.remove('invalid');
+            applyButton.disabled = false;
+        } else {
+            recommendedAllocation = null;
+            pointSummary.textContent = validSteps
+                ? `포인트 한도 초과 · 흑령 ${allocation.usedBlack}/${blackTotal}, 별호 ${allocation.usedTitle}/${titleTotal}`
+                : '포인트 입력값을 확인해 주세요. 각 능력치는 정해진 단위로 투자해야 합니다.';
+            pointSummary.classList.add('invalid');
+            applyButton.disabled = true;
+        }
+    }
+
+    function updatePointSummary() {
+        const total = Number(blackSpiritPanel.querySelector('[data-points="total"]').value) || 0;
+        const allocations = ['crit', 'general', 'skill'].map(key =>
+            Number(blackSpiritPanel.querySelector(`[data-points="${key}"]`).value) || 0
+        );
+        const used = allocations.reduce((sum, value) => sum + value, 0);
+        const remaining = total - used;
+        pointSummary.textContent = remaining >= 0
+            ? `배분 ${used} / ${total}포인트 · 남은 포인트: ${remaining}`
+            : `배분 ${used} / ${total}포인트 · 총 포인트를 ${Math.abs(remaining)}만큼 초과했습니다.`;
+        pointSummary.classList.toggle('invalid', remaining < 0);
+    }
+
+    function addRow() {
+        const row = document.createElement('tr');
+        row.dataset.id = String(nextId++);
+        row.innerHTML = `
+            <td class="rank"></td>
+            <td><input class="compare-check" type="checkbox" aria-label="비교 대상 선택"></td>
+            <td class="setting-name"><input type="text" aria-label="세팅 이름" placeholder="세팅 이름"></td>
+            ${['치명타 피해량', '무공 피해량', '일반 적 피해량 증가', '모든 피해량', '무기 공격력'].map(label =>
+                `<td><input type="number" inputmode="decimal" step="any" value="1" aria-label="${label}"></td>`
+            ).join('')}
+            <td class="result"></td>
+            <td class="comparison"></td>
+            <td><button class="remove-button" type="button" aria-label="세팅 삭제" title="세팅 삭제">×</button></td>`;
+        body.append(row);
+        update();
+        return row;
+    }
+
+    function updatePointSummary() {
+        if (!selectedRow || !body.contains(selectedRow)) return;
+        const totalInput = blackSpiritPanel.querySelector('[data-points="total"]');
+        const total = Math.max(0, Math.floor(Number(totalInput.value) || 0));
+        const statInputs = [...selectedRow.querySelectorAll('input[type="number"]')];
+        const stages = [
+            { key: 'crit', cost: 5, base: Number(statInputs[0].value) || 1 },
+            { key: 'skill', cost: 10, base: Number(statInputs[1].value) || 1 },
+            { key: 'general', cost: 10, base: Number(statInputs[2].value) || 1 }
+        ];
+        let states = new Map([[0, { score: 1, crit: 0, skill: 0, general: 0 }]]);
+        for (const stage of stages) {
+            const next = new Map();
+            for (const [used, state] of states) {
+                for (let points = 0; used + points <= total; points += stage.cost) {
+                    const nextUsed = used + points;
+                    const candidate = {
+                        ...state,
+                        score: state.score * (stage.base + points / stage.cost * 3),
+                        [stage.key]: points
+                    };
+                    if (!next.has(nextUsed) || candidate.score > next.get(nextUsed).score) next.set(nextUsed, candidate);
+                }
+            }
+            states = next;
+        }
+        let bestUsed = 0;
+        let best = states.get(0);
+        for (const [used, state] of states) {
+            if (state.score > best.score) { best = state; bestUsed = used; }
+        }
+        recommendedAllocation = best;
+        pointSummary.textContent = `추천 배분: 치명타 피해량 ${best.crit} · 일반 적 피해량 증가 ${best.general} · 무공 피해량 ${best.skill} 포인트 (사용 ${bestUsed} / ${total}, 남은 ${total - bestUsed})`;
+        pointSummary.classList.remove('invalid');
+    }
+
+    function updatePointSummary() {
+        if (!selectedRow || !body.contains(selectedRow)) return;
+        const blackTotal = Math.max(0, Math.floor(Number(blackSpiritPanel.querySelector('[data-points="total"]').value) || 0));
+        const titleTotal = Math.max(0, Math.floor(Number(blackSpiritPanel.querySelector('[data-points="title-total"]').value) || 0));
+        const stats = [...selectedRow.querySelectorAll('input[type="number"]')];
+        const base = stats.slice(0, 4).map(input => {
+            const value = input.value.trim() === '' ? 1 : Number(input.value);
+            return Number.isFinite(value) ? value : 1;
+        });
+        let states = new Map([['0,0', { usedBlack: 0, usedTitle: 0, score: 1, crit: 0, general: 0, blackSkill: 0, titleSkill: 0, titleAll: 0 }]]);
+        const stages = [
+            (state, emit) => { for (let p = 0; state.usedBlack + p <= blackTotal; p += 5) emit({ black: p, title: 0, key: 'crit', gain: p / 5 * 3, base: base[0] }); },
+            (state, emit) => { for (let p = 0; state.usedBlack + p <= blackTotal; p += 10) emit({ black: p, title: 0, key: 'general', gain: p / 10 * 3, base: base[2] }); },
+            (state, emit) => {
+                for (let b = 0; state.usedBlack + b <= blackTotal; b += 10)
+                    for (let t = 0; state.usedTitle + t <= titleTotal; t += 15)
+                        emit({ black: b, title: t, key: 'skill', gain: b / 10 * 3 + t / 15 * 2, base: base[1], blackSkill: b, titleSkill: t });
+            },
+            (state, emit) => { for (let p = 0; state.usedTitle + p <= titleTotal; p += 20) emit({ black: 0, title: p, key: 'all', gain: p / 20, base: base[3], titleAll: p }); }
+        ];
+        for (const stage of stages) {
+            const next = new Map();
+            for (const state of states.values()) {
+                stage(state, option => {
+                    const usedBlack = state.usedBlack + option.black;
+                    const usedTitle = state.usedTitle + option.title;
+                    const candidate = {
+                        ...state,
+                        usedBlack,
+                        usedTitle,
+                        score: state.score * (option.base + option.gain)
+                    };
+                    if (option.key === 'crit') candidate.crit = option.black;
+                    if (option.key === 'general') candidate.general = option.black;
+                    if (option.key === 'skill') {
+                        candidate.blackSkill = option.blackSkill;
+                        candidate.titleSkill = option.titleSkill;
+                    }
+                    if (option.key === 'all') candidate.titleAll = option.title;
+                    const key = `${usedBlack},${usedTitle}`;
+                    if (!next.has(key) || candidate.score > next.get(key).score) next.set(key, candidate);
+                });
+            }
+            states = next;
+        }
+        let best = null;
+        for (const state of states.values()) if (!best || state.score > best.score) best = state;
+        recommendedAllocation = best;
+        pointSummary.textContent = `추천 배분 · 흑령: 치명타 Lv.${best.crit / 5} (${best.crit}P), 일반 적 피해량 Lv.${best.general / 10} (${best.general}P), 무공 피해량 Lv.${best.blackSkill / 10} (${best.blackSkill}P) · 별호: 무공 피해량 Lv.${best.titleSkill / 15} (${best.titleSkill}P), 모든 피해량 Lv.${best.titleAll / 20} (${best.titleAll}P) · 사용 ${best.usedBlack}/${blackTotal}, ${best.usedTitle}/${titleTotal}`;
+        pointSummary.classList.remove('invalid');
+    }
+
+    function updatePointSummary() {
+        if (!selectedRow || !body.contains(selectedRow)) return;
+        const blackTotal = Math.max(0, Math.floor(Number(blackSpiritPanel.querySelector('[data-points="total"]').value) || 0));
+        const titleTotal = Math.max(0, Math.floor(Number(blackSpiritPanel.querySelector('[data-points="title-total"]').value) || 0));
+        const inputs = [...selectedRow.querySelectorAll('input[type="number"]')];
+        const base = inputs.slice(0, 4).map(input => {
+            const value = input.value.trim() === '' ? 1 : Number(input.value);
+            return Number.isFinite(value) ? value : 1;
+        });
+        const candidatesNear = (vertex, max) => [...new Set([0, max, Math.floor(vertex) - 1, Math.floor(vertex), Math.ceil(vertex), Math.ceil(vertex) + 1]
+            .map(value => Math.max(0, Math.min(max, value))))];
+        const critGeneralBest = (remaining, critBase, generalBase) => {
+            const units = Math.floor(remaining / 5);
+            let bestOption = { score: -Infinity, crit: 0, general: 0 };
+            for (const parity of [0, 1]) {
+                if (parity > units) continue;
+                const maxK = Math.floor((units - parity) / 2);
+                const generalUnits = maxK;
+                const vertex = (2 * (generalBase + 3 * generalUnits) - (critBase + 3 * parity)) / 12;
+                for (const k of candidatesNear(vertex, maxK)) {
+                    const critUnits = parity + 2 * k;
+                    const generalSteps = generalUnits - k;
+                    const score = (critBase + 3 * critUnits) * (generalBase + 3 * generalSteps);
+                    if (score > bestOption.score) bestOption = { score, crit: critUnits * 5, general: generalSteps * 10 };
+                }
+            }
+            return bestOption;
+        };
+        const titleBest = blackSkillSteps => {
+            const skillBase = base[1] + blackSkillSteps * 3;
+            let bestOption = { score: -Infinity, skill: 0, all: 0 };
+            for (let residue = 0; residue < 4; residue++) {
+                const remainingAtResidue = titleTotal - 15 * residue;
+                if (remainingAtResidue < 0) continue;
+                const maxK = Math.floor(remainingAtResidue / 60);
+                const allBase = base[3] + Math.floor(remainingAtResidue / 20);
+                const skillAtResidue = skillBase + residue * 2;
+                const vertex = (8 * allBase - 3 * skillAtResidue) / 48;
+                for (const k of candidatesNear(vertex, maxK)) {
+                    const skillSteps = residue + 4 * k;
+                    const allSteps = Math.floor(remainingAtResidue / 20) - 3 * k;
+                    const score = (skillAtResidue + 8 * k) * (base[3] + allSteps);
+                    if (score > bestOption.score) bestOption = { score, skill: skillSteps * 15, all: allSteps * 20 };
+                }
+            }
+            return bestOption;
+        };
+        let best = null;
+        for (let blackSkillPoints = 0; blackSkillPoints <= blackTotal; blackSkillPoints += 10) {
+            const blackSkillSteps = blackSkillPoints / 10;
+            const critGeneral = critGeneralBest(blackTotal - blackSkillPoints, base[0], base[2]);
+            const title = titleBest(blackSkillSteps);
+            const score = critGeneral.score * title.score;
+            if (!best || score > best.score) best = {
+                score,
+                crit: critGeneral.crit,
+                general: critGeneral.general,
+                blackSkill: blackSkillPoints,
+                titleSkill: title.skill,
+                titleAll: title.all
+            };
+        }
+        best.usedBlack = best.crit + best.general + best.blackSkill;
+        best.usedTitle = best.titleSkill + best.titleAll;
+        allocationFields.querySelector('[data-allocation="crit"]').value = best.crit;
+        allocationFields.querySelector('[data-allocation="general"]').value = best.general;
+        allocationFields.querySelector('[data-allocation="black-skill"]').value = best.blackSkill;
+        allocationFields.querySelector('[data-allocation="title-skill"]').value = best.titleSkill;
+        allocationFields.querySelector('[data-allocation="title-all"]').value = best.titleAll;
+        allocationFields.hidden = false;
+        updateAllocationSummary();
+    }
+
+    const calculateButton = document.createElement('button');
+    calculateButton.type = 'button';
+    calculateButton.className = 'storage-button';
+    calculateButton.textContent = '추천 배분 계산';
+    pointSummary.insertAdjacentElement('afterend', calculateButton);
+
+    const applyButton = document.createElement('button');
+    applyButton.type = 'button';
+    applyButton.id = 'apply-black-spirit';
+    applyButton.className = 'apply-button';
+    applyButton.textContent = '적용';
+    calculateButton.insertAdjacentElement('afterend', applyButton);
+
+    function invalidateRecommendation() {
+        recommendedAllocation = null;
+        allocationFields.hidden = true;
+        applyButton.disabled = true;
+        pointSummary.textContent = '포인트를 입력한 뒤 추천 배분 계산 버튼을 눌러 주세요.';
+    }
+
+    function update() {
+        const rows = [...body.rows].map(row => {
+            const values = [...row.querySelectorAll('input[type="number"]')].map(input => {
+                const value = input.value.trim() === '' ? 1 : Number(input.value);
+                return Number.isFinite(value) ? value : 0;
+            });
+            return { row, score: values.reduce((total, value) => total * value, 1) };
+        });
+        rows.sort((a, b) => b.score - a.score || Number(a.row.dataset.id) - Number(b.row.dataset.id));
+        const selectedScores = rows.filter(({ row }) => row.querySelector('.compare-check').checked).map(({ score }) => score);
+        const comparisonBase = selectedScores.length ? Math.min(...selectedScores) : null;
+        rows.forEach(({ row, score }, index) => {
+            row.querySelector('.rank').textContent = `${index + 1}위`;
+            row.querySelector('.rank').classList.toggle('top', index === 0);
+            row.querySelector('.result').textContent = Number.isFinite(score)
+                ? (score / 100_000_000).toLocaleString('ko-KR', { maximumSignificantDigits: 8 })
+                : '계산 불가';
+            const comparison = row.querySelector('.comparison');
+            if (!row.querySelector('.compare-check').checked || comparisonBase === null) comparison.textContent = '';
+            else if (comparisonBase === 0) comparison.textContent = score === 0 ? '100%' : '∞%';
+            else comparison.textContent = `${(score / comparisonBase * 100).toLocaleString('ko-KR', { maximumFractionDigits: 2 })}%`;
+            const rowAtPosition = body.children[index];
+            if (rowAtPosition !== row) body.insertBefore(row, rowAtPosition || null);
+        });
+        count.textContent = `세팅 ${rows.length}개`;
+    }
+
+    document.querySelector('#add-row').addEventListener('click', addRow);
+    document.querySelector('#copy-setting').addEventListener('click', () => {
+        if (!selectedRow || !body.contains(selectedRow)) {
+            storageStatus.textContent = '먼저 복사할 세팅 행을 클릭해 선택해 주세요.';
+            return;
+        }
+        const copiedRow = addRow();
+        const sourceName = selectedRow.querySelector('input[type="text"]').value.trim();
+        copiedRow.querySelector('input[type="text"]').value = sourceName ? `${sourceName} 복사본` : `세팅 ${copiedRow.dataset.id}`;
+        const sourceValues = [...selectedRow.querySelectorAll('input[type="number"]')];
+        const copiedValues = [...copiedRow.querySelectorAll('input[type="number"]')];
+        copiedValues.forEach((input, index) => { input.value = sourceValues[index].value; });
+        selectedRow.classList.remove('selected');
+        selectedRow = copiedRow;
+        copiedRow.classList.add('selected');
+        update();
+        invalidateRecommendation();
+        storageStatus.textContent = `세팅을 복사했습니다: ${copiedRow.querySelector('input[type="text"]').value}`;
+    });
+    document.querySelector('#black-spirit-button').addEventListener('click', () => {
+        if (!selectedRow || !body.contains(selectedRow)) {
+            storageStatus.textContent = '먼저 흑령 포인트를 배분할 세팅 행을 클릭해 선택해 주세요.';
+            return;
+        }
+        blackSpiritPanel.hidden = false;
+        const name = selectedRow.querySelector('input[type="text"]').value.trim();
+        selectedSettingLabel.textContent = `선택한 세팅: ${name || `세팅 ${selectedRow.dataset.id}`} · 능력치별 포인트를 배분하세요.`;
+        invalidateRecommendation();
+        blackSpiritPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    body.addEventListener('click', event => {
+        const row = event.target.closest('tr');
+        if (!row || event.target.closest('button')) return;
+        if (selectedRow) selectedRow.classList.remove('selected');
+        selectedRow = row;
+        selectedRow.classList.add('selected');
+        if (!blackSpiritPanel.hidden) invalidateRecommendation();
+    });
+    calculateButton.addEventListener('click', updatePointSummary);
+    blackSpiritPanel.addEventListener('input', event => {
+        if (event.target.matches('[data-points]')) invalidateRecommendation();
+        if (event.target.matches('[data-allocation]')) updateAllocationSummary();
+    });
+    body.addEventListener('input', event => {
+        if (selectedRow && selectedRow.contains(event.target)) invalidateRecommendation();
+    });
+    body.addEventListener('change', event => {
+        if (event.target.matches('.compare-check')) update();
+    });
+    applyButton.addEventListener('click', () => {
+        if (!selectedRow || !body.contains(selectedRow) || !recommendedAllocation) return;
+        const statInputs = [...selectedRow.querySelectorAll('input[type="number"]')];
+        const gains = [
+            recommendedAllocation.crit / 5 * 3,
+            recommendedAllocation.blackSkill / 10 * 3 + recommendedAllocation.titleSkill / 15 * 2,
+            recommendedAllocation.general / 10 * 3,
+            recommendedAllocation.titleAll / 20
+        ];
+        gains.forEach((gain, index) => {
+            const current = statInputs[index].value.trim() === '' ? 1 : Number(statInputs[index].value);
+            statInputs[index].value = String((Number.isFinite(current) ? current : 1) + gain);
+        });
+        update();
+        storageStatus.textContent = `적용 완료 · 흑령: 치명타 ${recommendedAllocation.crit}, 일반 적 피해량 ${recommendedAllocation.general}, 무공 피해량 ${recommendedAllocation.blackSkill}포인트 · 별호: 무공 피해량 ${recommendedAllocation.titleSkill}, 모든 피해량 ${recommendedAllocation.titleAll}포인트`;
+        blackSpiritPanel.hidden = true;
+        blackSpiritPanel.querySelector('[data-points="total"]').value = '0';
+        blackSpiritPanel.querySelector('[data-points="title-total"]').value = '0';
+        recommendedAllocation = null;
+        applyButton.disabled = true;
+    });
+    document.querySelector('#save-settings').addEventListener('click', () => {
+        try {
+            const settings = [...body.rows].map(row => ({
+                name: row.querySelector('input[type="text"]').value,
+                values: Object.fromEntries([...row.querySelectorAll('input[type="number"]')].map(input => [input.getAttribute('aria-label'), input.value]))
+            }));
+            localStorage.setItem(storageKey, JSON.stringify(settings));
+            storageStatus.textContent = '현재 세팅을 이 브라우저에 저장했습니다.';
+        } catch (error) {
+            storageStatus.textContent = '저장하지 못했습니다. 브라우저 저장 공간 설정을 확인해 주세요.';
+        }
+    });
+    document.querySelector('#load-settings').addEventListener('click', () => {
+        try {
+            const saved = localStorage.getItem(storageKey);
+            if (saved === null) {
+                storageStatus.textContent = '저장된 세팅이 없습니다.';
+                return;
+            }
+            const settings = JSON.parse(saved);
+            if (!Array.isArray(settings)) throw new Error('Invalid saved settings');
+            body.replaceChildren();
+            settings.forEach(setting => {
+                addRow();
+                const row = body.querySelector(`tr[data-id="${nextId - 1}"]`);
+                row.querySelector('input[type="text"]').value = typeof setting.name === 'string' ? setting.name : '';
+                row.querySelectorAll('input[type="number"]').forEach((input, index) => {
+                    // 배열 형식은 이전 저장 데이터와의 호환을 위해 순서대로 읽습니다.
+                    const value = Array.isArray(setting.values)
+                        ? setting.values[index]
+                        : setting.values?.[input.getAttribute('aria-label')];
+                    input.value = value === undefined ? '1' : String(value);
+                });
+            });
+            update();
+            storageStatus.textContent = '저장한 세팅을 불러왔습니다.';
+        } catch (error) {
+            storageStatus.textContent = '저장된 세팅을 불러오지 못했습니다.';
+        }
+    });
+    body.addEventListener('input', update);
+    body.addEventListener('click', event => {
+        const button = event.target.closest('.remove-button');
+        if (button) {
+            button.closest('tr').remove();
+            update();
+        }
+    });
+
+    addRow();
+    addRow();
+    addRow();
+</script>
 </body>
 </html>
